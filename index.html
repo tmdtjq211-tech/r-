@@ -407,6 +407,7 @@
             <p><strong>1. 인출 훈련:</strong> 눈으로 읽기보다 <strong>직접 장/절을 입력</strong>하는 것이 장기기억에 효과적입니다.</p>
             <p><strong>2. 스마트 입력:</strong> 모바일 키패드에서 장을 치고 <code>엔터(이동)</code>를 누르면 절로 넘어가며, 다시 누르면 <strong>발사</strong>됩니다.</p>
             <p><strong>3. 터치 스킬바:</strong> 위급할 때 입력칸 위의 <strong>스킬 아이콘을 터치</strong>하면 정답 입력 없이도 적을 쓸어버릴 수 있습니다! (상점에서 구매 필요)</p>
+            <p><strong>4. 실전 모드 보너스:</strong> 실전(힌트X) 모드로 플레이 시 모든 골드 보상을 <strong>2배</strong>로 획득합니다!</p>
             
             <hr style="border: 1px solid #4b5563; margin: 15px 0;">
             <h3 style="color: #fff; margin-top: 0; text-align: center;">⚙️ 설정 및 세이브</h3>
@@ -632,6 +633,7 @@
     
     let spawnedCount = 0;
     let killedCount = 0;
+    let earnedGoldThisStage = 0; // 이번 스테이지에서 획득한 골드량 추적
     
     let currentQuiz = null;
     let filteredData = []; 
@@ -823,6 +825,7 @@
         isPlaying = true;
         hp = 100; grace = 0; combo = 0;
         spawnedCount = 0; killedCount = 0; slowTimer = 0;
+        earnedGoldThisStage = 0; // 스테이지 골드 초기화
         
         monsters.forEach(m => m.el.remove()); monsters = [];
         arrows.forEach(a => a.el.remove()); arrows = [];
@@ -856,7 +859,9 @@
             title.innerText = "스테이지 클리어!";
             title.style.background = "linear-gradient(to right, #10b981, #34d399)";
             title.style.webkitBackgroundClip = "text";
-            desc.innerHTML = `성벽을 성공적으로 방어했습니다.<br><br>획득 골드: <span style="color:var(--gold); font-weight:bold;">${killedCount} G</span>`;
+            
+            let diffText = currentDifficulty === 'normal' ? '<br><span style="color:#10b981; font-size:0.9rem;">(실전 모드 2배 보너스 적용)</span>' : '';
+            desc.innerHTML = `성벽을 성공적으로 방어했습니다.<br><br>획득 골드: <span style="color:var(--gold); font-weight:bold;">${earnedGoldThisStage} G</span>${diffText}`;
             
             if(playingStageId === saveData.unlockedStage && playingStageId < 10) {
                 saveData.unlockedStage++;
@@ -867,7 +872,7 @@
             title.innerText = "방어 실패...";
             title.style.background = "linear-gradient(to right, #ef4444, #b91c1c)";
             title.style.webkitBackgroundClip = "text";
-            desc.innerHTML = `몬스터가 성벽을 파괴했습니다.<br>더 강한 무기를 준비하세요.`;
+            desc.innerHTML = `몬스터가 성벽을 파괴했습니다.<br>획득 골드: <span style="color:var(--gold); font-weight:bold;">${earnedGoldThisStage} G</span><br>더 강한 무기를 준비하세요.`;
             nextBtn.style.display = 'none';
         }
         
@@ -1021,8 +1026,14 @@
         monster.el.innerText = '💥';
         spawnParticles(monster.x, parseInt(monster.el.style.bottom), '✨');
         
+        // 몬스터 처치 시 골드 로직 (실전 모드 2배)
         let earned = monster.isBoss ? 15 : 2;
+        if (currentDifficulty === 'normal') {
+            earned *= 2; 
+        }
         saveData.gold += earned;
+        earnedGoldThisStage += earned;
+
         renderTopStats();
         showFloatingText(`+${earned}G`, monster.x, parseInt(monster.el.style.bottom)+40, 'floating-text', 'var(--gold)');
         
@@ -1039,7 +1050,14 @@
 
     function checkStageClear() {
         if (killedCount >= currentStageObj.target && isPlaying) {
-            saveData.gold += (currentStageObj.id * 10);
+            // 스테이지 클리어 골드 로직 (실전 모드 2배)
+            let clearBonus = currentStageObj.id * 10;
+            if (currentDifficulty === 'normal') {
+                clearBonus *= 2;
+            }
+            saveData.gold += clearBonus;
+            earnedGoldThisStage += clearBonus;
+            
             endGame(true);
         }
     }
