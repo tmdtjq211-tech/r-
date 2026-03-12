@@ -2,7 +2,6 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <!-- 모바일 화면 비율 고정, 확대 방지 (가상 키보드 팝업 시 레이아웃 붕괴 방지) -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>요한계시록 진리의 성벽</title>
     <style>
@@ -16,7 +15,6 @@
             --text-light: #f3f4f6;
         }
 
-        /* --- 스크롤바 커스텀 --- */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); border-radius: 4px; }
         ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
@@ -30,7 +28,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100dvh; /* 모바일 동적 뷰포트 지원 */
+            height: 100dvh;
             overflow: hidden;
             box-sizing: border-box;
         }
@@ -45,7 +43,6 @@
             box-shadow: 0 0 20px rgba(0,0,0,0.8);
         }
 
-        /* --- UI 공통 --- */
         #top-bar {
             position: absolute;
             top: 0; left: 0; width: 100%;
@@ -70,7 +67,6 @@
         }
         #hp-bar { width: 100%; height: 100%; background: linear-gradient(90deg, #ef4444, #f87171); transition: width 0.3s ease-out; }
 
-        /* --- Game Area --- */
         #game-area {
             position: absolute; top: 0; left: 0; width: 100%; height: calc(100% - 160px);
         }
@@ -87,16 +83,15 @@
         .monster.hit { filter: brightness(2) drop-shadow(0 0 10px red); }
         .arrow { position: absolute; font-size: 24px; z-index: 12; pointer-events: none; }
 
-        /* --- Touch Skill Bar (모바일 & 데스크탑 겸용) --- */
         #skill-bar {
             position: absolute;
-            bottom: 160px; /* 퀴즈 패널 바로 위 */
+            bottom: 160px;
             left: 0; width: 100%;
             display: flex; justify-content: center; gap: 12px;
             padding: 10px 0; box-sizing: border-box;
             background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
             z-index: 15;
-            display: none; /* 게임 중에만 표시 */
+            display: none;
         }
         .skill-btn {
             background: #374151; border: 2px solid #4b5563; border-radius: 50%;
@@ -112,7 +107,6 @@
             background: #ef4444; color: white; font-size: 0.7rem; font-weight: bold;
             padding: 2px 6px; border-radius: 10px; border: 1px solid #111;
         }
-        /* 은혜(스페이스) 버튼 특수 스타일 */
         #btn-skill-grace { border-color: var(--gold); overflow: hidden; }
         #grace-fill {
             position: absolute; bottom: 0; left: 0; width: 100%;
@@ -121,7 +115,6 @@
         }
         #btn-skill-grace span { position: relative; z-index: 1; }
 
-        /* --- Quiz Panel --- */
         #quiz-panel {
             position: absolute; bottom: 0; left: 0; width: 100%; height: 160px;
             background: var(--panel-bg); border-top: 3px solid #374151;
@@ -136,7 +129,6 @@
         }
         .hint-text { color: #10b981; font-weight: bold; font-size: 1rem; margin-bottom: 8px; text-shadow: 1px 1px 2px black; }
 
-        /* pattern="\d*" allows mobile numeric keypad */
         .number-input {
             width: 55px; padding: 10px 5px; font-size: 1.2rem; font-weight: bold;
             background-color: #374151; color: white; border: 2px solid #4b5563; border-radius: 8px;
@@ -156,7 +148,6 @@
         button:hover { background-color: var(--primary-hover); }
         button:active { transform: translateY(2px); box-shadow: 0 1px 2px rgba(0,0,0,0.3); }
 
-        /* --- Screens --- */
         .screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.9); display: flex; flex-direction: column;
@@ -169,7 +160,6 @@
             line-height: 1.2;
         }
 
-        /* --- Stage Grid --- */
         .stage-grid {
             display: grid; grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); gap: 8px;
             margin: 15px 0; width: 100%; max-width: 450px;
@@ -182,7 +172,6 @@
         .stage-btn:hover:not(.locked) { background: var(--primary); transform: scale(1.05); }
         .stage-btn.locked { background: #111; color: #555; border-color: #333; cursor: not-allowed; }
         
-        /* --- Settings Panel --- */
         .settings-panel {
             background: rgba(0, 0, 0, 0.5); padding: 15px; border-radius: 12px;
             width: 100%; max-width: 450px; border: 1px solid #4b5563;
@@ -194,7 +183,6 @@
         .radio-group label { cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 4px; }
         select.custom-sel { width: 100%; padding: 8px; font-size: 1rem; background-color: #1f2937; color: white; border: 1px solid #4b5563; border-radius: 8px; }
 
-        /* --- Animations & Effects --- */
         .combo-text {
             position: absolute; color: var(--gold); font-weight: 900; font-size: 35px;
             text-shadow: 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
@@ -211,7 +199,6 @@
         .shake { animation: shake 0.3s; }
         .hidden { display: none !important; }
 
-        /* --- Shop & Info Modal --- */
         .shop-content {
             background: #1f2937; padding: 20px; border-radius: 12px; border: 2px solid var(--gold);
             width: 100%; max-width: 450px; max-height: 85vh; overflow-y: auto; text-align: center; box-sizing: border-box;
@@ -227,12 +214,23 @@
         .btn-buy:hover { background: #f59e0b; }
         .btn-buy:disabled { background: #4b5563; color: #9ca3af; cursor: not-allowed; }
 
-        /* 데스크탑 둥근 모서리 복원 */
+        /* Save & Load UI */
+        .save-load-container {
+            display: flex; gap: 10px; justify-content: center; margin-top: 15px;
+        }
+        .btn-save { background: #10b981; }
+        .btn-load { background: #3b82f6; }
+        
+        #auto-save-notice {
+            position: absolute; top: 50px; right: 10px; background: rgba(16, 185, 129, 0.8);
+            color: white; padding: 5px 10px; border-radius: 5px; font-size: 0.8rem; font-weight: bold;
+            opacity: 0; transition: opacity 0.5s; z-index: 100; pointer-events: none;
+        }
+
         @media (min-width: 901px) {
             body { padding: 20px 0; }
             #game-wrapper { border-radius: 12px; height: 90vh; }
         }
-        /* 소형 모바일 최적화 */
         @media (max-width: 400px) {
             .castle { font-size: 60px; left: 10px; }
             .archer { font-size: 30px; left: 60px; bottom: 70px; }
@@ -244,7 +242,6 @@
 <body>
 
 <div id="game-wrapper">
-    <!-- Top UI -->
     <div id="top-bar">
         <div class="stat-group">
             <span title="성 체력">🏰</span>
@@ -259,15 +256,15 @@
             <button id="btn-quit" class="hidden" style="margin-left: 5px; background-color: #ef4444; padding: 4px 8px; font-size: 0.8rem;">포기</button>
         </div>
     </div>
+    
+    <div id="auto-save-notice">💾 자동 저장됨</div>
 
-    <!-- Game World -->
     <div id="game-area">
         <div id="time-slow-overlay"></div>
         <div class="castle" id="castle">🏰</div>
         <div class="archer" id="archer">🏹</div>
     </div>
 
-    <!-- Mobile Touch Skill Bar -->
     <div id="skill-bar">
         <div class="skill-btn" id="btn-skill-slow" title="모래시계(Shift)">
             ⏳<div class="skill-badge" id="badge-slow">0</div>
@@ -287,13 +284,11 @@
         </div>
     </div>
 
-    <!-- Quiz Panel -->
     <div id="quiz-panel">
         <div id="verse-display">"말씀이 여기에 나타납니다."</div>
         <div id="hint-display" class="hint-text hidden"></div> 
         
         <div class="controls">
-            <!-- type="tel" or type="number" pattern="\d*" forces numeric keypad on mobile -->
             <input type="number" pattern="\d*" id="inp-chapter" class="number-input" placeholder="장" autocomplete="off">
             <span>장</span>
             <input type="number" pattern="\d*" id="inp-verse" class="number-input" placeholder="절" autocomplete="off">
@@ -302,13 +297,12 @@
         </div>
     </div>
 
-    <!-- Start Screen -->
     <div id="screen-start" class="screen">
         <h1>요한계시록<br>방어전</h1>
         
         <div style="display:flex; gap: 10px; margin-bottom: 15px; width: 100%; max-width: 450px;">
             <button id="btn-open-shop" style="background-color: var(--gold); color: #000; flex: 1;">🛒 상점</button>
-            <button id="btn-info" style="background-color: #6366f1; flex: 1;">🧠 가이드</button>
+            <button id="btn-info" style="background-color: #6366f1; flex: 1;">🧠 가이드/설정</button>
         </div>
 
         <h3 style="margin:0 0 5px 0; color: #fff;">스테이지 선택</h3>
@@ -349,7 +343,6 @@
         </div>
     </div>
 
-    <!-- Shop Modal -->
     <div id="shop-modal" class="screen hidden" style="z-index: 60;">
         <div class="shop-content">
             <h2 style="color: var(--gold); margin-top: 0; margin-bottom: 5px;">🛒 성소 상점</h2>
@@ -399,7 +392,6 @@
         </div>
     </div>
 
-    <!-- Stage Result Screen -->
     <div id="screen-result" class="screen hidden">
         <h1 id="result-title">결과</h1>
         <p id="result-desc" style="text-align: center; font-size: 1.1rem; color: white;"></p>
@@ -409,13 +401,22 @@
         </div>
     </div>
 
-    <!-- Info Modal -->
     <div id="info-modal" class="screen hidden" style="z-index: 60;">
         <div class="shop-content" style="text-align: left;">
             <h2 style="color: var(--gold); text-align: center; margin-top: 0;">🧠 게임 가이드</h2>
             <p><strong>1. 인출 훈련:</strong> 눈으로 읽기보다 <strong>직접 장/절을 입력</strong>하는 것이 장기기억에 효과적입니다.</p>
             <p><strong>2. 스마트 입력:</strong> 모바일 키패드에서 장을 치고 <code>엔터(이동)</code>를 누르면 절로 넘어가며, 다시 누르면 <strong>발사</strong>됩니다.</p>
             <p><strong>3. 터치 스킬바:</strong> 위급할 때 입력칸 위의 <strong>스킬 아이콘을 터치</strong>하면 정답 입력 없이도 적을 쓸어버릴 수 있습니다! (상점에서 구매 필요)</p>
+            
+            <hr style="border: 1px solid #4b5563; margin: 15px 0;">
+            <h3 style="color: #fff; margin-top: 0; text-align: center;">⚙️ 설정 및 세이브</h3>
+            <p style="font-size: 0.9rem; color: #9ca3af; text-align: center;">기기를 변경할 때 데이터를 백업하고 불러오세요.</p>
+            <div class="save-load-container">
+                <button class="btn-save" id="btn-export-save">파일로 저장</button>
+                <input type="file" id="file-import-save" accept=".json" style="display: none;">
+                <button class="btn-load" id="btn-import-save" onclick="document.getElementById('file-import-save').click();">불러오기</button>
+            </div>
+
             <div style="text-align: center; margin-top: 20px;">
                 <button id="btn-close-info" style="width:100%; background: #4b5563;">닫기</button>
             </div>
@@ -561,13 +562,65 @@
         { id: 10, target: 60, m: ['👿','😈'], boss: '👹', hpBase: 15, spdBase: 65 }
     ];
 
-    // --- Save System ---
+    // --- Save System (자동 저장 및 수동 저장/불러오기) ---
     let saveData = JSON.parse(localStorage.getItem('revDefSaveV3')) || {
         unlockedStage: 1, gold: 0, attackPower: 1, slowItems: 3,
         lightnings: 0, trumpets: 0, bowls: 0
     };
 
-    function saveGame() { localStorage.setItem('revDefSaveV3', JSON.stringify(saveData)); }
+    function saveGame() { 
+        localStorage.setItem('revDefSaveV3', JSON.stringify(saveData)); 
+    }
+
+    function showAutoSaveNotice() {
+        const notice = document.getElementById('auto-save-notice');
+        notice.style.opacity = 1;
+        setTimeout(() => { notice.style.opacity = 0; }, 2000);
+    }
+
+    function exportSave() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(saveData));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href",     dataStr);
+        downloadAnchorNode.setAttribute("download", "revelation_defense_save.json");
+        document.body.appendChild(downloadAnchorNode); // required for firefox
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+        alert("세이브 파일이 다운로드되었습니다.");
+    }
+
+    function importSave(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const importedData = JSON.parse(e.target.result);
+                if(importedData.unlockedStage !== undefined && importedData.gold !== undefined) {
+                    saveData = importedData;
+                    saveGame();
+                    renderTopStats();
+                    renderStageGrid();
+                    updateShopUI();
+                    alert("세이브 파일을 성공적으로 불러왔습니다!");
+                } else {
+                    alert("유효하지 않은 세이브 파일입니다.");
+                }
+            } catch (err) {
+                alert("파일 읽기 오류: " + err.message);
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    // 주기적 자동 저장 (30초마다)
+    setInterval(() => {
+        if(isPlaying) {
+            saveGame();
+            showAutoSaveNotice();
+        }
+    }, 30000);
+
 
     // --- Game Variables ---
     let isPlaying = false;
@@ -628,6 +681,9 @@
         document.getElementById('btn-close-info').addEventListener('click', () => document.getElementById('info-modal').classList.add('hidden'));
         document.getElementById('btn-quit').addEventListener('click', quitGame);
         
+        document.getElementById('btn-export-save').addEventListener('click', exportSave);
+        document.getElementById('file-import-save').addEventListener('change', importSave);
+
         document.getElementById('btn-result-main').addEventListener('click', () => {
             document.getElementById('screen-result').classList.add('hidden');
             renderStageGrid();
@@ -669,7 +725,6 @@
         // PC Keyboard Skills
         document.addEventListener('keydown', (e) => {
             if(!isPlaying) return;
-            // Prevent scrolling on space
             if(e.code === 'Space') { e.preventDefault(); useGraceSkill(); }
             if(e.code === 'ShiftLeft' || e.code === 'ShiftRight') { e.preventDefault(); useTimeSlow(); }
             if(e.code === 'KeyZ' || e.key === 'z') { e.preventDefault(); useLightning(); }
@@ -683,7 +738,6 @@
         goldTxt.innerText = saveData.gold;
         atkTxt.innerText = saveData.attackPower;
         
-        // 배지에 개수 표시
         badgeSlow.innerText = saveData.slowItems;
         badgeLight.innerText = saveData.lightnings;
         badgeTrump.innerText = saveData.trumpets;
@@ -752,7 +806,7 @@
         document.getElementById('screen-start').classList.add('hidden');
         document.getElementById('btn-quit').classList.remove('hidden');
         document.getElementById('in-game-stats').style.display = 'flex';
-        document.getElementById('skill-bar').style.display = 'flex'; // 스킬바 표시
+        document.getElementById('skill-bar').style.display = 'flex'; 
         
         chosenWeapon = document.querySelector('input[name="start-weapon"]:checked').value;
         currentDifficulty = document.querySelector('input[name="difficulty"]:checked').value;
@@ -789,7 +843,7 @@
         isPlaying = false;
         document.getElementById('btn-quit').classList.add('hidden');
         document.getElementById('in-game-stats').style.display = 'none';
-        document.getElementById('skill-bar').style.display = 'none'; // 스킬바 숨김
+        document.getElementById('skill-bar').style.display = 'none'; 
         
         saveGame(); 
         
@@ -1141,7 +1195,7 @@
 
     function updateInGameUI() {
         hpBar.style.width = hp + '%';
-        graceFill.style.height = grace + '%'; // 스킬 게이지는 이제 동그란 아이콘을 채움
+        graceFill.style.height = grace + '%'; 
         progressTxt.innerText = `${killedCount}/${currentStageObj ? currentStageObj.target : 0}`;
         
         let weapon = getWeaponInfo(saveData.attackPower);
