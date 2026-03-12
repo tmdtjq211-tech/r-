@@ -2,7 +2,8 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 모바일 화면 비율 고정, 확대 방지 (가상 키보드 팝업 시 레이아웃 붕괴 방지) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>요한계시록 진리의 성벽</title>
     <style>
         :root {
@@ -16,22 +17,21 @@
         }
 
         /* --- 스크롤바 커스텀 --- */
-        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); border-radius: 4px; }
         ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
 
         body {
             margin: 0;
-            padding: 20px 0;
+            padding: 0;
             font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
             background-color: #000;
             color: var(--text-light);
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            overflow-y: auto;
+            height: 100dvh; /* 모바일 동적 뷰포트 지원 */
+            overflow: hidden;
             box-sizing: border-box;
         }
 
@@ -39,20 +39,17 @@
             position: relative;
             width: 100%;
             max-width: 900px;
-            height: 90vh;
-            min-height: 650px;
-            max-height: 800px;
+            height: 100%;
             background: linear-gradient(to bottom, #0f172a 0%, #1e1b4b 70%, #064e3b 100%);
             overflow: hidden;
             box-shadow: 0 0 20px rgba(0,0,0,0.8);
-            border-radius: 8px;
         }
 
         /* --- UI 공통 --- */
         #top-bar {
             position: absolute;
             top: 0; left: 0; width: 100%;
-            padding: 10px 15px;
+            padding: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -67,16 +64,15 @@
         .stat-group { display: flex; align-items: center; gap: 6px; }
         
         .hp-container {
-            width: 100px; height: 18px;
+            width: 100px; height: 16px;
             background-color: rgba(0,0,0,0.5);
-            border: 2px solid white; border-radius: 10px; overflow: hidden;
+            border: 2px solid white; border-radius: 8px; overflow: hidden;
         }
         #hp-bar { width: 100%; height: 100%; background: linear-gradient(90deg, #ef4444, #f87171); transition: width 0.3s ease-out; }
-        #grace-bar { width: 0%; height: 100%; background: linear-gradient(90deg, #fbbf24, #f59e0b); transition: width 0.3s ease-out; }
 
         /* --- Game Area --- */
         #game-area {
-            position: absolute; top: 0; left: 0; width: 100%; height: calc(100% - 180px);
+            position: absolute; top: 0; left: 0; width: 100%; height: calc(100% - 160px);
         }
         #time-slow-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -87,37 +83,75 @@
         .castle { position: absolute; left: 20px; bottom: 20px; font-size: 80px; z-index: 10; filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.5)); transition: transform 0.1s; }
         .archer { position: absolute; left: 80px; bottom: 90px; font-size: 40px; z-index: 11; transition: transform 0.1s; }
         .monster { position: absolute; font-size: 40px; bottom: 20px; z-index: 5; filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5)); transition: filter 0.2s; }
-        .monster.boss { font-size: 70px; z-index: 6; filter: drop-shadow(0 0 10px red); }
+        .monster.boss { font-size: 60px; z-index: 6; filter: drop-shadow(0 0 10px red); }
         .monster.hit { filter: brightness(2) drop-shadow(0 0 10px red); }
         .arrow { position: absolute; font-size: 24px; z-index: 12; pointer-events: none; }
 
+        /* --- Touch Skill Bar (모바일 & 데스크탑 겸용) --- */
+        #skill-bar {
+            position: absolute;
+            bottom: 160px; /* 퀴즈 패널 바로 위 */
+            left: 0; width: 100%;
+            display: flex; justify-content: center; gap: 12px;
+            padding: 10px 0; box-sizing: border-box;
+            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
+            z-index: 15;
+            display: none; /* 게임 중에만 표시 */
+        }
+        .skill-btn {
+            background: #374151; border: 2px solid #4b5563; border-radius: 50%;
+            width: 45px; height: 45px; font-size: 1.3rem;
+            display: flex; justify-content: center; align-items: center;
+            position: relative; cursor: pointer; color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+            user-select: none; -webkit-tap-highlight-color: transparent;
+        }
+        .skill-btn:active { transform: scale(0.9); }
+        .skill-badge {
+            position: absolute; top: -5px; right: -5px;
+            background: #ef4444; color: white; font-size: 0.7rem; font-weight: bold;
+            padding: 2px 6px; border-radius: 10px; border: 1px solid #111;
+        }
+        /* 은혜(스페이스) 버튼 특수 스타일 */
+        #btn-skill-grace { border-color: var(--gold); overflow: hidden; }
+        #grace-fill {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            background: rgba(251, 191, 36, 0.5);
+            height: 0%; transition: height 0.3s; z-index: 0;
+        }
+        #btn-skill-grace span { position: relative; z-index: 1; }
+
         /* --- Quiz Panel --- */
         #quiz-panel {
-            position: absolute; bottom: 0; left: 0; width: 100%; height: 180px;
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 160px;
             background: var(--panel-bg); border-top: 3px solid #374151;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 15px; box-sizing: border-box; z-index: 20; backdrop-filter: blur(5px);
+            padding: 10px; box-sizing: border-box; z-index: 20; backdrop-filter: blur(5px);
         }
         #verse-display {
-            font-size: 1.1rem; line-height: 1.5; text-align: center; margin-bottom: 10px;
-            padding: 0 20px; min-height: 50px; max-height: 70px; overflow-y: auto;
-            color: var(--gold); font-weight: 500;
+            font-size: 1rem; line-height: 1.4; text-align: center; margin-bottom: 8px;
+            padding: 0 10px; width: 100%; box-sizing: border-box;
+            min-height: 45px; max-height: 65px; overflow-y: auto;
+            color: var(--gold); font-weight: 500; word-break: keep-all;
         }
-        .hint-text { color: #10b981; font-weight: bold; font-size: 1.1rem; margin-bottom: 10px; text-shadow: 1px 1px 2px black; }
+        .hint-text { color: #10b981; font-weight: bold; font-size: 1rem; margin-bottom: 8px; text-shadow: 1px 1px 2px black; }
 
+        /* pattern="\d*" allows mobile numeric keypad */
         .number-input {
-            width: 70px; padding: 10px; font-size: 1.3rem; font-weight: bold;
+            width: 55px; padding: 10px 5px; font-size: 1.2rem; font-weight: bold;
             background-color: #374151; color: white; border: 2px solid #4b5563; border-radius: 8px;
             text-align: center; outline: none; transition: all 0.2s;
         }
-        .number-input:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(79, 70, 229, 0.6); transform: scale(1.05); background-color: #1f2937; }
+        .number-input:focus { border-color: var(--primary); box-shadow: 0 0 10px rgba(79, 70, 229, 0.6); background-color: #1f2937; }
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
-        .controls { display: flex; gap: 15px; align-items: center; justify-content: center; }
+        .controls { display: flex; gap: 8px; align-items: center; justify-content: center; width: 100%; }
+        .controls span { font-size: 1.1rem; font-weight: bold; }
         button {
-            background-color: var(--primary); color: white; border: none; padding: 10px 20px;
-            font-size: 1.1rem; font-weight: bold; border-radius: 8px; cursor: pointer;
+            background-color: var(--primary); color: white; border: none; padding: 10px 15px;
+            font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer;
             transition: background-color 0.2s, transform 0.1s; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            white-space: nowrap;
         }
         button:hover { background-color: var(--primary-hover); }
         button:active { transform: translateY(2px); box-shadow: 0 1px 2px rgba(0,0,0,0.3); }
@@ -127,20 +161,22 @@
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.9); display: flex; flex-direction: column;
             justify-content: center; align-items: center; z-index: 50; backdrop-filter: blur(4px);
+            padding: 20px; box-sizing: border-box; overflow-y: auto;
         }
         .screen h1 {
-            font-size: 2.8rem; margin-bottom: 10px; text-align: center;
+            font-size: 2.2rem; margin-top: 0; margin-bottom: 15px; text-align: center;
             background: linear-gradient(to right, #fbbf24, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            line-height: 1.2;
         }
 
         /* --- Stage Grid --- */
         .stage-grid {
-            display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;
-            margin: 20px 0; max-width: 500px; width: 90%;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); gap: 8px;
+            margin: 15px 0; width: 100%; max-width: 450px;
         }
         .stage-btn {
             background: #1f2937; border: 2px solid #4b5563; color: white;
-            padding: 15px 0; font-size: 1.2rem; font-weight: bold; border-radius: 12px;
+            padding: 12px 0; font-size: 1rem; font-weight: bold; border-radius: 10px;
             cursor: pointer; transition: all 0.2s;
         }
         .stage-btn:hover:not(.locked) { background: var(--primary); transform: scale(1.05); }
@@ -149,73 +185,78 @@
         /* --- Settings Panel --- */
         .settings-panel {
             background: rgba(0, 0, 0, 0.5); padding: 15px; border-radius: 12px;
-            width: 80%; max-width: 500px; max-height: 35vh; overflow-y: auto; border: 1px solid #4b5563;
+            width: 100%; max-width: 450px; border: 1px solid #4b5563;
         }
-        .setting-group { margin-bottom: 15px; }
-        .setting-group h3 { margin: 0 0 10px 0; color: var(--primary); font-size: 1.1rem; text-align: center; }
-        .radio-group { display: flex; justify-content: space-around; background: #1f2937; padding: 10px; border-radius: 8px; flex-wrap: wrap; gap: 10px; }
-        .radio-group label { cursor: pointer; font-size: 1rem; display: flex; align-items: center; gap: 5px; }
-        select.custom-sel { width: 100%; padding: 10px; font-size: 1rem; background-color: #1f2937; color: white; border: 1px solid #4b5563; border-radius: 8px; }
+        .setting-group { margin-bottom: 12px; }
+        .setting-group:last-child { margin-bottom: 0; }
+        .setting-group h3 { margin: 0 0 8px 0; color: var(--primary); font-size: 1rem; text-align: center; }
+        .radio-group { display: flex; justify-content: center; background: #1f2937; padding: 8px; border-radius: 8px; flex-wrap: wrap; gap: 8px; }
+        .radio-group label { cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 4px; }
+        select.custom-sel { width: 100%; padding: 8px; font-size: 1rem; background-color: #1f2937; color: white; border: 1px solid #4b5563; border-radius: 8px; }
 
         /* --- Animations & Effects --- */
         .combo-text {
-            position: absolute; color: var(--gold); font-weight: 900; font-size: 40px;
-            text-shadow: 3px 3px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
+            position: absolute; color: var(--gold); font-weight: 900; font-size: 35px;
+            text-shadow: 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
             pointer-events: none; z-index: 40; animation: comboPop 0.8s ease-out forwards;
         }
         @keyframes comboPop {
             0% { transform: scale(0.3) rotate(-15deg); opacity: 0; }
             40% { transform: scale(1.3) rotate(5deg); opacity: 1; }
-            100% { transform: scale(1) rotate(0deg); opacity: 0; top: -50px; }
+            100% { transform: scale(1) rotate(0deg); opacity: 0; top: -30px; }
         }
-        .floating-text { position: absolute; color: red; font-weight: bold; font-size: 24px; pointer-events: none; animation: floatUp 1s ease-out forwards; z-index: 30; }
-        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-50px) scale(1.5); } }
+        .floating-text { position: absolute; color: red; font-weight: bold; font-size: 20px; pointer-events: none; animation: floatUp 1s ease-out forwards; z-index: 30; text-shadow: 1px 1px 2px black;}
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-40px) scale(1.5); } }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25%, 75% { transform: translateX(-5px); } 50% { transform: translateX(5px); } }
         .shake { animation: shake 0.3s; }
         .hidden { display: none !important; }
 
-        /* --- Shop Modal --- */
+        /* --- Shop & Info Modal --- */
         .shop-content {
-            background: #1f2937; padding: 25px; border-radius: 12px; border: 2px solid var(--gold);
-            width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; text-align: center;
+            background: #1f2937; padding: 20px; border-radius: 12px; border: 2px solid var(--gold);
+            width: 100%; max-width: 450px; max-height: 85vh; overflow-y: auto; text-align: center; box-sizing: border-box;
         }
         .shop-item {
-            background: #111827; border: 1px solid #4b5563; padding: 15px; border-radius: 8px;
-            margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;
+            background: #111827; border: 1px solid #4b5563; padding: 12px; border-radius: 8px;
+            margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px;
         }
-        .shop-item-info { text-align: left; max-width: 70%; }
-        .shop-item-title { font-weight: bold; font-size: 1.1rem; color: #fff; margin-bottom: 5px; }
-        .shop-item-desc { font-size: 0.85rem; color: #9ca3af; line-height: 1.3; }
-        .btn-buy { background: var(--gold); color: #000; padding: 8px 15px; border-radius: 5px; font-weight: bold; font-size: 1rem; min-width: 80px;}
+        .shop-item-info { text-align: left; flex: 1; }
+        .shop-item-title { font-weight: bold; font-size: 1rem; color: #fff; margin-bottom: 4px; }
+        .shop-item-desc { font-size: 0.8rem; color: #9ca3af; line-height: 1.3; }
+        .btn-buy { background: var(--gold); color: #000; padding: 8px 12px; border-radius: 5px; font-weight: bold; font-size: 0.9rem; min-width: 65px; flex-shrink: 0;}
         .btn-buy:hover { background: #f59e0b; }
         .btn-buy:disabled { background: #4b5563; color: #9ca3af; cursor: not-allowed; }
+
+        /* 데스크탑 둥근 모서리 복원 */
+        @media (min-width: 901px) {
+            body { padding: 20px 0; }
+            #game-wrapper { border-radius: 12px; height: 90vh; }
+        }
+        /* 소형 모바일 최적화 */
+        @media (max-width: 400px) {
+            .castle { font-size: 60px; left: 10px; }
+            .archer { font-size: 30px; left: 60px; bottom: 70px; }
+            .monster { font-size: 30px; }
+            .monster.boss { font-size: 50px; }
+        }
     </style>
 </head>
 <body>
 
 <div id="game-wrapper">
-    <!-- UI -->
+    <!-- Top UI -->
     <div id="top-bar">
         <div class="stat-group">
             <span title="성 체력">🏰</span>
             <div class="hp-container"><div id="hp-bar"></div></div>
         </div>
-        <div class="stat-group">
-            <span title="공격력">⚔️ <span id="atk-txt" style="color:var(--gold);">1</span></span> |
-            <span title="모래시계(Shift)">⏳ <span id="slow-txt" style="color:#60a5fa;">0</span></span> |
-            <span title="번개 강타(Z)">⚡ <span id="light-txt" style="color:#fde047;">0</span></span> |
-            <span title="일곱 나팔(X)">🎺 <span id="trump-txt" style="color:#fcd34d;">0</span></span> |
-            <span title="진노의 대접(C)">🥣 <span id="bowl-txt" style="color:#ef4444;">0</span></span>
-        </div>
         <div class="stat-group" style="display: none;" id="in-game-stats">
-            <span style="font-size:0.85rem;">무기: <span id="weapon-txt" style="color:#10b981;">기본 활(1발)</span></span> |
-            <span style="font-size:0.85rem;">스킬(Space):</span>
-            <div class="hp-container" style="border-color: #fbbf24; width:60px; height:12px;"><div id="grace-bar"></div></div> |
-            <span style="font-size:0.85rem;">진행: <span id="progress-txt">0/10</span></span>
+            <span style="font-size:0.85rem;"><span id="weapon-txt" style="color:#10b981;">활</span>(<span id="atk-txt" style="color:var(--gold);">1</span>)</span> |
+            <span style="font-size:0.85rem;">처치:<span id="progress-txt">0/10</span></span>
         </div>
         <div class="stat-group">
             <span style="color: var(--gold); font-weight: bold;">💰 <span id="gold-txt">0</span></span>
-            <button id="btn-quit" class="hidden" style="margin-left: 10px; background-color: #ef4444; padding: 4px 8px; font-size: 0.8rem;">나가기</button>
+            <button id="btn-quit" class="hidden" style="margin-left: 5px; background-color: #ef4444; padding: 4px 8px; font-size: 0.8rem;">포기</button>
         </div>
     </div>
 
@@ -226,46 +267,67 @@
         <div class="archer" id="archer">🏹</div>
     </div>
 
+    <!-- Mobile Touch Skill Bar -->
+    <div id="skill-bar">
+        <div class="skill-btn" id="btn-skill-slow" title="모래시계(Shift)">
+            ⏳<div class="skill-badge" id="badge-slow">0</div>
+        </div>
+        <div class="skill-btn" id="btn-skill-light" title="번개(Z)">
+            ⚡<div class="skill-badge" id="badge-light">0</div>
+        </div>
+        <div class="skill-btn" id="btn-skill-trump" title="나팔(X)">
+            🎺<div class="skill-badge" id="badge-trump">0</div>
+        </div>
+        <div class="skill-btn" id="btn-skill-bowl" title="대접(C)">
+            🥣<div class="skill-badge" id="badge-bowl">0</div>
+        </div>
+        <div class="skill-btn" id="btn-skill-grace" title="성령의 폭풍(Space)">
+            <div id="grace-fill"></div>
+            <span>🌪️</span>
+        </div>
+    </div>
+
     <!-- Quiz Panel -->
     <div id="quiz-panel">
         <div id="verse-display">"말씀이 여기에 나타납니다."</div>
         <div id="hint-display" class="hint-text hidden"></div> 
         
         <div class="controls">
-            <input type="number" id="inp-chapter" class="number-input" placeholder="장" min="1" max="22" autocomplete="off">
-            <span style="font-size: 1.3rem; font-weight: bold;">장</span>
-            <input type="number" id="inp-verse" class="number-input" placeholder="절" min="1" max="100" autocomplete="off">
-            <span style="font-size: 1.3rem; font-weight: bold;">절</span>
-            <button id="btn-submit">발사! (Enter)</button>
+            <!-- type="tel" or type="number" pattern="\d*" forces numeric keypad on mobile -->
+            <input type="number" pattern="\d*" id="inp-chapter" class="number-input" placeholder="장" autocomplete="off">
+            <span>장</span>
+            <input type="number" pattern="\d*" id="inp-verse" class="number-input" placeholder="절" autocomplete="off">
+            <span>절</span>
+            <button id="btn-submit">발사!</button>
         </div>
     </div>
 
     <!-- Start Screen -->
     <div id="screen-start" class="screen">
-        <h1>요한계시록 방어전</h1>
+        <h1>요한계시록<br>방어전</h1>
         
-        <div style="display:flex; gap: 15px; margin-bottom: 20px;">
-            <button id="btn-open-shop" style="background-color: var(--gold); color: #000;">🛒 성소 상점 (업그레이드)</button>
-            <button id="btn-info" style="background-color: #6366f1;">🧠 학습법 & 규칙</button>
+        <div style="display:flex; gap: 10px; margin-bottom: 15px; width: 100%; max-width: 450px;">
+            <button id="btn-open-shop" style="background-color: var(--gold); color: #000; flex: 1;">🛒 상점</button>
+            <button id="btn-info" style="background-color: #6366f1; flex: 1;">🧠 가이드</button>
         </div>
 
-        <h3 style="margin:0 0 10px 0; color: #fff;">스테이지 선택</h3>
+        <h3 style="margin:0 0 5px 0; color: #fff;">스테이지 선택</h3>
         <div class="stage-grid" id="stage-grid">
-            <!-- 자바스크립트로 스테이지 버튼 생성 -->
+            <!-- JS 렌더링 -->
         </div>
 
         <div class="settings-panel">
             <div class="setting-group">
                 <h3>무기 선택</h3>
                 <div class="radio-group">
-                    <label><input type="radio" name="start-weapon" value="bow" checked> 🏹 활 (가장 앞선 적)</label>
-                    <label><input type="radio" name="start-weapon" value="sword"> ⚔️ 검 (근접 다수 타격)</label>
-                    <label><input type="radio" name="start-weapon" value="staff"> ✨ 지팡이 (보스 우선)</label>
+                    <label><input type="radio" name="start-weapon" value="bow" checked> 🏹 활</label>
+                    <label><input type="radio" name="start-weapon" value="sword"> ⚔️ 검</label>
+                    <label><input type="radio" name="start-weapon" value="staff"> ✨ 지팡이</label>
                 </div>
             </div>
             <div class="setting-group">
                 <h3>모드 설정</h3>
-                <div class="radio-group" style="margin-bottom: 10px;">
+                <div class="radio-group">
                     <label><input type="radio" name="difficulty" value="practice" checked> 연습(힌트O)</label>
                     <label><input type="radio" name="difficulty" value="normal"> 실전(힌트X)</label>
                 </div>
@@ -273,15 +335,15 @@
             <div class="setting-group">
                 <h3>말씀 출제 범위</h3>
                 <select id="sel-range" class="custom-sel">
-                    <option value="1">계시록 1장</option>
-                    <option value="2">계시록 2장</option>
-                    <option value="3">계시록 3장</option>
-                    <option value="4">계시록 4장</option>
-                    <option value="5">계시록 5장</option>
-                    <option value="6">계시록 6장</option>
-                    <option value="1-3">계시록 1~3장</option>
-                    <option value="4-6">계시록 4~6장</option>
-                    <option value="1-6" selected>통합 계시록 1~6장</option>
+                    <option value="1">1장</option>
+                    <option value="2">2장</option>
+                    <option value="3">3장</option>
+                    <option value="4">4장</option>
+                    <option value="5">5장</option>
+                    <option value="6">6장</option>
+                    <option value="1-3">1~3장</option>
+                    <option value="4-6">4~6장</option>
+                    <option value="1-6" selected>통합 1~6장</option>
                 </select>
             </div>
         </div>
@@ -290,73 +352,72 @@
     <!-- Shop Modal -->
     <div id="shop-modal" class="screen hidden" style="z-index: 60;">
         <div class="shop-content">
-            <h2 style="color: var(--gold); margin-top: 0;">🛒 성소 상점</h2>
-            <p style="color: #ccc; margin-bottom: 20px;">문제를 맞혀 몬스터를 처치하면 골드를 얻습니다.<br>보유 골드: <span id="shop-gold-txt" style="color:var(--gold); font-weight:bold;">0</span></p>
+            <h2 style="color: var(--gold); margin-top: 0; margin-bottom: 5px;">🛒 성소 상점</h2>
+            <p style="color: #ccc; margin-bottom: 15px; font-size: 0.9rem;">보유 골드: <span id="shop-gold-txt" style="color:var(--gold); font-weight:bold;">0</span></p>
             
             <div class="shop-item">
                 <div class="shop-item-info">
-                    <div class="shop-item-title">⚔️ 공격력 강화 (현재: Lv.<span id="shop-atk-lv">1</span>)</div>
-                    <div class="shop-item-desc">무기의 기본 데미지와 타격 횟수를 올립니다.</div>
+                    <div class="shop-item-title">⚔️ 강화 (Lv.<span id="shop-atk-lv">1</span>)</div>
+                    <div class="shop-item-desc">기본 데미지/타격수 증가</div>
                 </div>
                 <button class="btn-buy" id="btn-buy-atk">50 G</button>
             </div>
             
             <div class="shop-item">
                 <div class="shop-item-info">
-                    <div class="shop-item-title">⏳ 시간의 모래시계 (보유: <span id="shop-slow-cnt">0</span>)</div>
-                    <div class="shop-item-desc">[Shift] 키: 5초간 적을 30% 속도로 느리게 합니다.</div>
+                    <div class="shop-item-title">⏳ 모래시계 (<span id="shop-slow-cnt">0</span>)</div>
+                    <div class="shop-item-desc">5초간 적 속도 대폭 감소</div>
                 </div>
                 <button class="btn-buy" id="btn-buy-slow">30 G</button>
             </div>
 
             <div class="shop-item">
                 <div class="shop-item-info">
-                    <div class="shop-item-title">⚡ 심판의 번개 (보유: <span id="shop-light-cnt">0</span>)</div>
-                    <div class="shop-item-desc">[Z] 키: 가장 가까운 적 3명에게 번개(피해량 10)를 내립니다. (입력 불필요)</div>
+                    <div class="shop-item-title">⚡ 번개 (<span id="shop-light-cnt">0</span>)</div>
+                    <div class="shop-item-desc">근접 적 3명 즉시 타격</div>
                 </div>
                 <button class="btn-buy" id="btn-buy-light">20 G</button>
             </div>
 
             <div class="shop-item">
                 <div class="shop-item-info">
-                    <div class="shop-item-title">🎺 일곱 나팔 (보유: <span id="shop-trump-cnt">0</span>)</div>
-                    <div class="shop-item-desc">[X] 키: 화면 내 모든 몬스터를 맨 끝으로 날려버립니다. (입력 불필요)</div>
+                    <div class="shop-item-title">🎺 나팔 (<span id="shop-trump-cnt">0</span>)</div>
+                    <div class="shop-item-desc">모든 적을 화면 끝으로 넉백</div>
                 </div>
                 <button class="btn-buy" id="btn-buy-trump">40 G</button>
             </div>
 
             <div class="shop-item">
                 <div class="shop-item-info">
-                    <div class="shop-item-title">🥣 진노의 대접 (보유: <span id="shop-bowl-cnt">0</span>)</div>
-                    <div class="shop-item-desc">[C] 키: 화면 내 모든 적에게 치명적인 광역 피해(50)를 입힙니다! (입력 불필요)</div>
+                    <div class="shop-item-title">🥣 진노의 대접 (<span id="shop-bowl-cnt">0</span>)</div>
+                    <div class="shop-item-desc">화면 전체 강력한 광역 피해</div>
                 </div>
                 <button class="btn-buy" id="btn-buy-bowl">80 G</button>
             </div>
 
-            <button id="btn-close-shop" style="margin-top: 15px; background: #4b5563; width: 100%;">돌아가기</button>
+            <button id="btn-close-shop" style="margin-top: 10px; background: #4b5563; width: 100%;">돌아가기</button>
         </div>
     </div>
 
-    <!-- Stage Clear / Game Over Screen -->
+    <!-- Stage Result Screen -->
     <div id="screen-result" class="screen hidden">
         <h1 id="result-title">결과</h1>
-        <p id="result-desc"></p>
-        <div style="display:flex; gap: 15px; margin-top: 20px;">
-            <button id="btn-result-next" style="font-size: 1.2rem; background-color: var(--gold); color: #000;">다음 스테이지</button>
-            <button id="btn-result-main" style="font-size: 1.2rem; background-color: #4b5563;">메인으로</button>
+        <p id="result-desc" style="text-align: center; font-size: 1.1rem; color: white;"></p>
+        <div style="display:flex; gap: 10px; margin-top: 20px; width: 100%; max-width: 300px;">
+            <button id="btn-result-main" style="flex:1; background-color: #4b5563;">메인</button>
+            <button id="btn-result-next" style="flex:1; background-color: var(--gold); color: #000;">다음</button>
         </div>
     </div>
 
     <!-- Info Modal -->
     <div id="info-modal" class="screen hidden" style="z-index: 60;">
-        <div class="shop-content" style="max-width: 500px; text-align: left;">
-            <h2 style="color: var(--gold); text-align: center; margin-top: 0;">🧠 게임 & 학습 가이드</h2>
-            <p><strong>1. 인출 훈련(Retrieval Practice):</strong> 눈으로 읽는 것보다 정답을 <strong>직접 입력하여 꺼내는 훈련</strong>이 장기 기억에 압도적으로 효과적입니다. 연습(힌트) 모드로 시작해 점차 실전 모드로 넘어가세요.</p>
-            <p><strong>2. 스마트 입력:</strong> 장을 누르고 <code>Enter</code>를 치면 절로 넘어갑니다. 다시 <code>Enter</code>를 치면 즉시 발사됩니다.</p>
-            <p><strong>3. 패닉 방지 (스킬):</strong> 문제가 막히면 당황하지 마세요! 상점에서 구매한 <code>Z</code>(번개), <code>X</code>(나팔), <code>C</code>(대접) 키를 누르면 <strong>정답을 입력하지 않아도 즉시 적을 쓸어버립니다.</strong></p>
-            <p>이 강력한 스킬을 쓰기 위한 골드를 모으려면, 역설적으로 평소에 말씀 퀴즈를 더 열심히 맞혀야 합니다! ⚔️</p>
+        <div class="shop-content" style="text-align: left;">
+            <h2 style="color: var(--gold); text-align: center; margin-top: 0;">🧠 게임 가이드</h2>
+            <p><strong>1. 인출 훈련:</strong> 눈으로 읽기보다 <strong>직접 장/절을 입력</strong>하는 것이 장기기억에 효과적입니다.</p>
+            <p><strong>2. 스마트 입력:</strong> 모바일 키패드에서 장을 치고 <code>엔터(이동)</code>를 누르면 절로 넘어가며, 다시 누르면 <strong>발사</strong>됩니다.</p>
+            <p><strong>3. 터치 스킬바:</strong> 위급할 때 입력칸 위의 <strong>스킬 아이콘을 터치</strong>하면 정답 입력 없이도 적을 쓸어버릴 수 있습니다! (상점에서 구매 필요)</p>
             <div style="text-align: center; margin-top: 20px;">
-                <button id="btn-close-info" style="font-size: 1.1rem; background: #4b5563;">확인 및 닫기</button>
+                <button id="btn-close-info" style="width:100%; background: #4b5563;">닫기</button>
             </div>
         </div>
     </div>
@@ -365,7 +426,7 @@
 <script>
     // --- Data: Revelation 1~6 전체 (개역한글판) ---
     const bibleData = [
-        // 1장 (총 20절)
+        // 1장
         {c:1, v:1, t:"예수 그리스도의 계시라 이는 하나님이 그에게 주사 반드시 속히 될 일을 그 종들에게 보이시려고 그 천사를 그 종 요한에게 보내어 지시하신 것이라"},
         {c:1, v:2, t:"요한은 하나님의 말씀과 예수 그리스도의 증거 곧 자기의 본 것을 다 증거하였느니라"},
         {c:1, v:3, t:"이 예언의 말씀을 읽는 자와 듣는 자들과 그 가운데 기록한 것을 지키는 자들이 복이 있나니 때가 가까움이라"},
@@ -386,7 +447,7 @@
         {c:1, v:18, t:"곧 산 자라 내가 전에 죽었었노라 볼찌어다 이제 세세토록 살아 있어 사망과 음부의 열쇠를 가졌노니"},
         {c:1, v:19, t:"그러므로 네 본 것과 이제 있는 일과 장차 될 일을 기록하라"},
         {c:1, v:20, t:"네 본 것은 내 오른손에 일곱 별의 비밀과 일곱 금 촛대라 일곱 별은 일곱 교회의 사자요 일곱 촛대는 일곱 교회니라"},
-        // 2장 (총 29절)
+        // 2장
         {c:2, v:1, t:"에베소 교회의 사자에게 편지하기를 오른손에 일곱 별을 붙잡고 일곱 금 촛대 사이에 다니시는 이가 가라사대"},
         {c:2, v:2, t:"내가 네 행위와 수고와 네 인내를 알고 또 악한 자들을 용납지 아니한 것과 자칭 사도라 하되 아닌 자들을 시험하여 그 거짓된 것을 네가 드러낸 것과"},
         {c:2, v:3, t:"또 네가 참고 내 이름을 위하여 견디고 게으르지 아니한 것을 아노라"},
@@ -416,7 +477,7 @@
         {c:2, v:27, t:"그가 철장을 가지고 저희를 다스려 질그릇 깨뜨리는 것과 같이 하리라 나도 내 아버지께 받은 것이 그러하니라"},
         {c:2, v:28, t:"내가 또 그에게 새벽 별을 주리라"},
         {c:2, v:29, t:"귀 있는 자는 성령이 교회들에게 하시는 말씀을 들을찌어다"},
-        // 3장 (총 22절)
+        // 3장
         {c:3, v:1, t:"사데 교회의 사자에게 편지하기를 하나님의 일곱 영과 일곱 별을 가진 이가 가라사대 내가 네 행위를 아노니 네가 살았다 하는 이름은 가졌으나 죽은 자로다"},
         {c:3, v:2, t:"너는 일깨워 그 남은바 죽게 된 것을 굳게 하라 내 하나님 앞에 네 행위의 온전한 것을 찾지 못하였노니"},
         {c:3, v:3, t:"그러므로 네가 어떻게 받았으며 어떻게 들었는지 생각하고 지키어 회개하라 만일 일깨지 아니하면 내가 도적 같이 이르리니 어느 시에 네게 임할는지 네가 알지 못하리라"},
@@ -439,7 +500,7 @@
         {c:3, v:20, t:"볼찌어다 내가 문밖에 서서 두드리노니 누구든지 내 음성을 듣고 문을 열면 내가 그에게로 들어가 그와 더불어 먹고 그는 나와 더불어 먹으리라"},
         {c:3, v:21, t:"이기는 그에게는 내가 내 보좌에 함께 앉게 하여주기를 내가 이기고 아버지 보좌에 함께 앉은 것과 같이 하리라"},
         {c:3, v:22, t:"귀 있는 자는 성령이 교회들에게 하시는 말씀을 들을찌어다"},
-        // 4장 (총 11절)
+        // 4장
         {c:4, v:1, t:"이 일 후에 내가 보니 하늘에 열린 문이 있는데 내가 들은바 처음에 내게 말하던 나팔소리 같은 그 음성이 가라사대 이리로 올라오라 이후에 마땅히 될 일을 내가 네게 보이리라 하시더라"},
         {c:4, v:2, t:"내가 곧 성령에 감동하였더니 보라 하늘에 보좌를 베풀었고 그 보좌 위에 앉으신 이가 있는데"},
         {c:4, v:3, t:"앉으신 이의 모양이 벽옥과 홍보석 같고 또 무지개가 있어 보좌에 둘렸는데 그 모양이 녹보석 같더라"},
@@ -451,7 +512,7 @@
         {c:4, v:9, t:"그 생물들이 영광과 존귀와 감사를 보좌에 앉으사 세세토록 사시는 이에게 돌릴 때에"},
         {c:4, v:10, t:"이십 사 장로들이 보좌에 앉으신 이 앞에 엎드려 세세토록 사시는 이에게 경배하고 자기의 면류관을 보좌 앞에 던지며 가로되"},
         {c:4, v:11, t:"우리 주 하나님이여 영광과 존귀와 능력을 받으시는 것이 합당하오니 주께서 만물을 지으신지라 만물이 주의 뜻대로 있었고 또 지으심을 받았나이다 하더라"},
-        // 5장 (총 14절)
+        // 5장
         {c:5, v:1, t:"내가 보매 보좌에 앉으신 이의 오른손에 책이 있으니 안팎으로 썼고 일곱 인으로 봉하였더라"},
         {c:5, v:2, t:"또 봄에 힘있는 천사가 큰 음성으로 외치기를 누가 책을 펴며 그 인을 떼기에 합당하냐 하니"},
         {c:5, v:3, t:"하늘 위에나 땅 위에나 땅 아래에 능히 책을 펴거나 보거나 할 이가 없더라"},
@@ -466,7 +527,7 @@
         {c:5, v:12, t:"큰 음성으로 가라사대 죽임을 당하신 어린 양이 능력과 부와 지혜와 힘과 존귀와 영광과 찬송을 받으시기에 합당하도다 하더라"},
         {c:5, v:13, t:"내가 또 들으니 하늘 위에와 땅 위에와 땅 아래와 바다 위에와 또 그 가운데 모든 만물이 가로되 보좌에 앉으신 이와 어린 양에게 찬송과 존귀와 영광과 능력을 세세토록 돌릴찌어다 하니"},
         {c:5, v:14, t:"네 생물이 가로되 아멘 하고 장로들은 엎드려 경배하더라"},
-        // 6장 (총 17절)
+        // 6장
         {c:6, v:1, t:"내가 보매 어린 양이 일곱 인 중에 하나를 떼시는 그 때에 내가 들으니 네 생물 중에 하나가 우뢰소리 같이 말하되 오라 하기로"},
         {c:6, v:2, t:"내가 이에 보니 흰 말이 있는데 그 탄 자가 활을 가졌고 면류관을 받고 나가서 이기고 또 이기려고 하더라"},
         {c:6, v:3, t:"둘째 인을 떼실 때에 내가 들으니 둘째 생물이 말하되 오라 하더니"},
@@ -501,16 +562,12 @@
     ];
 
     // --- Save System ---
-    let saveData = JSON.parse(localStorage.getItem('revDefSaveV2')) || {
-        unlockedStage: 1, gold: 0, attackPower: 1, slowItems: 3
+    let saveData = JSON.parse(localStorage.getItem('revDefSaveV3')) || {
+        unlockedStage: 1, gold: 0, attackPower: 1, slowItems: 3,
+        lightnings: 0, trumpets: 0, bowls: 0
     };
-    
-    // 신규 스킬 데이터가 기존 세이브에 없으면 추가
-    if(saveData.lightnings === undefined) saveData.lightnings = 0;
-    if(saveData.trumpets === undefined) saveData.trumpets = 0;
-    if(saveData.bowls === undefined) saveData.bowls = 0;
 
-    function saveGame() { localStorage.setItem('revDefSaveV2', JSON.stringify(saveData)); }
+    function saveGame() { localStorage.setItem('revDefSaveV3', JSON.stringify(saveData)); }
 
     // --- Game Variables ---
     let isPlaying = false;
@@ -534,7 +591,7 @@
     let spawnTimer = 0;
     let slowTimer = 0;
     
-    const CASTLE_X = 120; 
+    const CASTLE_X = 100; 
 
     // --- DOM Elements ---
     const gameArea = document.getElementById('game-area');
@@ -544,7 +601,7 @@
     const inpVerse = document.getElementById('inp-verse');
     const btnSubmit = document.getElementById('btn-submit');
     const hpBar = document.getElementById('hp-bar');
-    const graceBar = document.getElementById('grace-bar');
+    const graceFill = document.getElementById('grace-fill');
     const weaponTxt = document.getElementById('weapon-txt');
     const archer = document.getElementById('archer');
     const castle = document.getElementById('castle');
@@ -552,18 +609,19 @@
     
     const goldTxt = document.getElementById('gold-txt');
     const atkTxt = document.getElementById('atk-txt');
-    const slowTxt = document.getElementById('slow-txt');
-    const lightTxt = document.getElementById('light-txt');
-    const trumpTxt = document.getElementById('trump-txt');
-    const bowlTxt = document.getElementById('bowl-txt');
     const progressTxt = document.getElementById('progress-txt');
+    
+    const badgeSlow = document.getElementById('badge-slow');
+    const badgeLight = document.getElementById('badge-light');
+    const badgeTrump = document.getElementById('badge-trump');
+    const badgeBowl = document.getElementById('badge-bowl');
 
     // --- Initialization ---
     function init() {
         renderTopStats();
         renderStageGrid();
 
-        // Event Listeners
+        // Event Listeners (Menu)
         document.getElementById('btn-open-shop').addEventListener('click', openShop);
         document.getElementById('btn-close-shop').addEventListener('click', () => document.getElementById('shop-modal').classList.add('hidden'));
         document.getElementById('btn-info').addEventListener('click', () => document.getElementById('info-modal').classList.remove('hidden'));
@@ -588,9 +646,9 @@
         document.getElementById('btn-buy-trump').addEventListener('click', () => buyItem('trump'));
         document.getElementById('btn-buy-bowl').addEventListener('click', () => buyItem('bowl'));
 
+        // Action Events
         btnSubmit.addEventListener('click', checkAnswer);
         
-        // 입력창 스마트 포커스 (Enter)
         inpChapter.addEventListener('keydown', (e) => {
             if(isPlaying && e.key === 'Enter') {
                 if(inpChapter.value && !inpVerse.value) inpVerse.focus(); 
@@ -601,9 +659,17 @@
             if(isPlaying && e.key === 'Enter') checkAnswer();
         });
 
-        // 특수 스킬 단축키
+        // Touch/Click Skills Binding
+        document.getElementById('btn-skill-slow').addEventListener('click', useTimeSlow);
+        document.getElementById('btn-skill-light').addEventListener('click', useLightning);
+        document.getElementById('btn-skill-trump').addEventListener('click', useTrumpet);
+        document.getElementById('btn-skill-bowl').addEventListener('click', useBowl);
+        document.getElementById('btn-skill-grace').addEventListener('click', useGraceSkill);
+
+        // PC Keyboard Skills
         document.addEventListener('keydown', (e) => {
             if(!isPlaying) return;
+            // Prevent scrolling on space
             if(e.code === 'Space') { e.preventDefault(); useGraceSkill(); }
             if(e.code === 'ShiftLeft' || e.code === 'ShiftRight') { e.preventDefault(); useTimeSlow(); }
             if(e.code === 'KeyZ' || e.key === 'z') { e.preventDefault(); useLightning(); }
@@ -616,10 +682,12 @@
     function renderTopStats() {
         goldTxt.innerText = saveData.gold;
         atkTxt.innerText = saveData.attackPower;
-        slowTxt.innerText = saveData.slowItems;
-        lightTxt.innerText = saveData.lightnings;
-        trumpTxt.innerText = saveData.trumpets;
-        bowlTxt.innerText = saveData.bowls;
+        
+        // 배지에 개수 표시
+        badgeSlow.innerText = saveData.slowItems;
+        badgeLight.innerText = saveData.lightnings;
+        badgeTrump.innerText = saveData.trumpets;
+        badgeBowl.innerText = saveData.bowls;
     }
 
     function renderStageGrid() {
@@ -684,6 +752,7 @@
         document.getElementById('screen-start').classList.add('hidden');
         document.getElementById('btn-quit').classList.remove('hidden');
         document.getElementById('in-game-stats').style.display = 'flex';
+        document.getElementById('skill-bar').style.display = 'flex'; // 스킬바 표시
         
         chosenWeapon = document.querySelector('input[name="start-weapon"]:checked').value;
         currentDifficulty = document.querySelector('input[name="difficulty"]:checked').value;
@@ -712,7 +781,7 @@
     }
 
     function quitGame() {
-        if(!confirm("정말 스테이지를 포기하고 나가시겠습니까?")) return;
+        if(!confirm("스테이지를 포기하시겠습니까?")) return;
         endGame(false);
     }
 
@@ -720,6 +789,7 @@
         isPlaying = false;
         document.getElementById('btn-quit').classList.add('hidden');
         document.getElementById('in-game-stats').style.display = 'none';
+        document.getElementById('skill-bar').style.display = 'none'; // 스킬바 숨김
         
         saveGame(); 
         
@@ -732,7 +802,7 @@
             title.innerText = "스테이지 클리어!";
             title.style.background = "linear-gradient(to right, #10b981, #34d399)";
             title.style.webkitBackgroundClip = "text";
-            desc.innerHTML = `방어에 성공했습니다!<br><br>얻은 골드: <span style="color:var(--gold); font-weight:bold;">${killedCount} G</span> (보너스 포함)`;
+            desc.innerHTML = `성벽을 성공적으로 방어했습니다.<br><br>획득 골드: <span style="color:var(--gold); font-weight:bold;">${killedCount} G</span>`;
             
             if(playingStageId === saveData.unlockedStage && playingStageId < 10) {
                 saveData.unlockedStage++;
@@ -743,7 +813,7 @@
             title.innerText = "방어 실패...";
             title.style.background = "linear-gradient(to right, #ef4444, #b91c1c)";
             title.style.webkitBackgroundClip = "text";
-            desc.innerHTML = `성벽이 무너졌습니다.<br><br>상점에서 무기와 스킬을 사고 다시 도전하세요.`;
+            desc.innerHTML = `몬스터가 성벽을 파괴했습니다.<br>더 강한 무기를 준비하세요.`;
             nextBtn.style.display = 'none';
         }
         
@@ -818,7 +888,6 @@
                 m.el.remove();
                 monsters.splice(i, 1);
                 takeDamage(m.isBoss ? 30 : 15);
-                
                 killedCount++;
                 checkStageClear();
             }
@@ -921,7 +990,7 @@
         }
     }
 
-    // --- Quiz & Active Skills ---
+    // --- Quiz ---
     function nextQuiz() {
         const idx = Math.floor(Math.random() * filteredData.length);
         currentQuiz = filteredData[idx];
@@ -956,9 +1025,9 @@
             let targets = [];
 
             if (chosenWeapon === 'sword') {
-                let rangeLimit = CASTLE_X + 350; 
+                let rangeLimit = CASTLE_X + 250; 
                 targets = activeMonsters.filter(m => m.x <= rangeLimit).sort((a, b) => a.x - b.x).slice(0, weapon.count);
-                if (targets.length === 0 && activeMonsters.length > 0) showFloatingText("검 사거리 밖입니다!", gameArea.clientWidth/2, 200);
+                if (targets.length === 0 && activeMonsters.length > 0) showFloatingText("사거리 밖입니다!", gameArea.clientWidth/2, 180);
             } else if (chosenWeapon === 'staff') {
                 targets = activeMonsters.sort((a, b) => b.mhp - a.mhp || a.x - b.x).slice(0, weapon.count);
             } else {
@@ -984,9 +1053,9 @@
         }
     }
 
-    // --- Skills (Consumables & Grace) ---
+    // --- Skills (Touch / Keyboard) ---
     function useGraceSkill() {
-        if (grace < 100) { showFloatingText("스킬 게이지 부족!", gameArea.clientWidth/2, 150); return; }
+        if (grace < 100) { showFloatingText("은혜 부족!", gameArea.clientWidth/2, 150); return; }
         grace = 0; updateInGameUI();
         showFloatingText("성령의 폭풍!!", gameArea.clientWidth/2, 300);
         
@@ -996,7 +1065,7 @@
 
         monsters.forEach(m => {
             if (m.active) {
-                m.x += 200; 
+                m.x += 150; 
                 spawnParticles(m.x, parseInt(m.el.style.bottom), '⚡');
                 damageMonster(m, saveData.attackPower * 2); 
             }
@@ -1004,18 +1073,17 @@
     }
 
     function useTimeSlow() {
-        if (saveData.slowItems <= 0) { showFloatingText("모래시계가 없습니다!", gameArea.clientWidth/2, 150); return; }
+        if (saveData.slowItems <= 0) { showFloatingText("모래시계 없음!", gameArea.clientWidth/2, 150); return; }
         if (slowTimer > 0) return; 
         
         saveData.slowItems--; saveGame(); renderTopStats();
         slowTimer = 5.0; 
         document.getElementById('time-slow-overlay').style.display = 'block';
-        showFloatingText("시간 지연 발동!", gameArea.clientWidth/2, 200, 'combo-text', '#60a5fa');
+        showFloatingText("시간 지연!", gameArea.clientWidth/2, 200, 'combo-text', '#60a5fa');
     }
 
     function useLightning() {
-        if (saveData.lightnings <= 0) { showFloatingText("번개가 없습니다!", gameArea.clientWidth/2, 150); return; }
-        
+        if (saveData.lightnings <= 0) { showFloatingText("번개 없음!", gameArea.clientWidth/2, 150); return; }
         let activeMonsters = monsters.filter(m => m.active).sort((a, b) => a.x - b.x);
         if (activeMonsters.length === 0) return; 
         
@@ -1030,21 +1098,21 @@
     }
 
     function useTrumpet() {
-        if (saveData.trumpets <= 0) { showFloatingText("나팔이 없습니다!", gameArea.clientWidth/2, 150); return; }
+        if (saveData.trumpets <= 0) { showFloatingText("나팔 없음!", gameArea.clientWidth/2, 150); return; }
         let activeMonsters = monsters.filter(m => m.active);
         if (activeMonsters.length === 0) return;
 
         saveData.trumpets--; saveGame(); renderTopStats();
-        showFloatingText("🎺 일곱 나팔 소리!", gameArea.clientWidth/2, 250, 'combo-text', '#fcd34d');
+        showFloatingText("🎺 나팔 소리!", gameArea.clientWidth/2, 250, 'combo-text', '#fcd34d');
         
         activeMonsters.forEach(m => {
-            m.x = gameArea.clientWidth - 100; 
+            m.x = gameArea.clientWidth - 50; 
             spawnParticles(m.x, parseInt(m.el.style.bottom), '💨');
         });
     }
 
     function useBowl() {
-        if (saveData.bowls <= 0) { showFloatingText("진노의 대접이 없습니다!", gameArea.clientWidth/2, 150); return; }
+        if (saveData.bowls <= 0) { showFloatingText("대접 없음!", gameArea.clientWidth/2, 150); return; }
         let activeMonsters = monsters.filter(m => m.active);
         if (activeMonsters.length === 0) return;
 
@@ -1073,11 +1141,12 @@
 
     function updateInGameUI() {
         hpBar.style.width = hp + '%';
-        graceBar.style.width = grace + '%';
+        graceFill.style.height = grace + '%'; // 스킬 게이지는 이제 동그란 아이콘을 채움
         progressTxt.innerText = `${killedCount}/${currentStageObj ? currentStageObj.target : 0}`;
         
         let weapon = getWeaponInfo(saveData.attackPower);
-        weaponTxt.innerText = `${weapon.name}(${weapon.count}발)`;
+        weaponTxt.innerText = weapon.name;
+        
         if(hp <= 30) hpBar.style.background = 'red';
         else hpBar.style.background = 'linear-gradient(90deg, #10b981, #34d399)';
     }
